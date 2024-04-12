@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 @Component
+@Primary
 public class Squirtle implements Pokemon{
     @Override
     public void attack() {
