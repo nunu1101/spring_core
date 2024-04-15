@@ -1,10 +1,8 @@
 package com.ohgiraffers.section01.aop;
 
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.After;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.*;
 import org.springframework.stereotype.Component;
 
 /* @Aspect : pointcut과 advice를 하나의 클래스 단위로 정의하기 위한 어노테이션이다. */
@@ -34,5 +32,40 @@ public class LoggingAspect {
     @After("logPointcut()")
     public void logAfter(JoinPoint joinPoint) {
         System.out.println("After joinPoint.getSignature : " + joinPoint.getSignature());
+    }
+
+    /* Returning 속성은 리턴값으로 받아올 오브젝트의 매개변수 이름과 동일해야 한다.
+      또한 joinPoint는 반드시 첫 번째 매개변수로 선언해야 한다.
+     */
+    @AfterReturning(pointcut = "logPointcut()", returning = "result")
+    public void logAfterReturning(JoinPoint joinPoint, Object result) {
+        System.out.println("After Returning result : " + result);
+    }
+
+    /* Throwing 속성 이름과 매개변수의 이름이 동일해야 한다. */
+    @AfterThrowing(pointcut = "logPointcut()", throwing = "exception")
+    public void logAfterThrowing(Throwable exception) {
+        System.out.println("After Throwing exception : " + exception);
+    }
+
+    /* Around Advice는 가장 강력한 어드바이스이다.
+    *  이 어드바이스는 조인포인트를 완전히 장악하기 때문에
+    *  앞에 살펴 본 어드바이스 모두 Around 어드바이스로 조합할 수 있다.
+    *  심지어 원본 조인포인트를 언제 실행할지, 실행 자체를 안할지, 계속 실행할지 여부까지도 제어한다.
+    *  AroundAdvice는 조인포인트 매개변수는 ProceedingJoinPoint로 고정되어있다.
+    *  JoinPoint의 하위 인터페이스로 원본 조인포인트의 진행 시점을 제어할 수 있다.
+    *  조인포인트의 진행하는 호출을 잊는 경우가 자주 발생하기 때문에 주의해야 하며
+    *  최소한의 요건을 충족하면서도 가장 기능이 약한 어드바이스를 쓰는게 바람직하다. */
+    @Around("logPointcut()")
+    public Object logAround(ProceedingJoinPoint joinPoint) throws Throwable {
+        System.out.println("Around Before " + joinPoint.getSignature().getName());
+
+        /* 원본 조인포인트를 실행한다. */
+        Object result = joinPoint.proceed();
+
+        System.out.println("Around After " + joinPoint.getSignature().getName());
+
+        /* 원본 조인포인트를 호출한 쪽 혹은 다른 어드바이스가 다시 실행할 수 있도록 반환한다. */
+        return result;
     }
 }
